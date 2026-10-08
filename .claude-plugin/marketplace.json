@@ -1,0 +1,14 @@
+{
+  "name": "dune-kit",
+  "owner": {
+    "name": "mhjoon99"
+  },
+  "description": "dune-kit: Claude Code 개인 커스터마이즈 플러그인 모음",
+  "plugins": [
+    {
+      "name": "neon-bubble",
+      "source": "./plugins/neon-bubble",
+      "description": "네온 상태 띠 · 사이드 패널 · git 가드 · flow 단위 자동 compact"
+    }
+  ]
+}

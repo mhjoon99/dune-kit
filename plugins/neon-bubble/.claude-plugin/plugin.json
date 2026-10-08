@@ -1,0 +1,65 @@
+{
+  "name": "neon-bubble",
+  "version": "0.2.1",
+  "description": "네온 버블 상태 띠·스피너·턴 요약, 사용량 알림·예보, 사이드 패널, 차단/묻는 가드, flow 자동 compact, 편집 리플레이, 서브에이전트 모델 분배",
+  "author": {
+    "name": "mhjoon99"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "protectedBranches": {
+      "type": "string",
+      "title": "보호 브랜치",
+      "description": "직접 커밋을 막고 push 때 경고할 브랜치(쉼표 구분)",
+      "default": "main,master,stage"
+    },
+    "ipExemptPaths": {
+      "type": "string",
+      "title": "사설 IP 예외 경로",
+      "description": "사설 IP 를 써도 되는 경로(쉼표 구분, / 로 끝나면 폴더)",
+      "default": "docs/,.claude/,.env,.env.local"
+    },
+    "commentMaxLines": {
+      "type": "number",
+      "title": "주석 최대 연속 줄수",
+      "description": "연속 주석이 이 줄수를 넘으면 경고 토스트",
+      "default": 3
+    },
+    "autoCompact": {
+      "type": "boolean",
+      "title": "flow 단위 자동 compact",
+      "description": "새 작업 흐름이 시작되면 이전 흐름을 compact",
+      "default": true
+    },
+    "compactMinPercent": {
+      "type": "number",
+      "title": "자동 compact 최소 컨텍스트(%)",
+      "description": "컨텍스트가 이 값 미만이면 flow 판정을 하지 않음",
+      "default": 30
+    },
+    "warnPercent": {
+      "type": "number",
+      "title": "주의 알림 기준(%)",
+      "description": "5h·7d·컨텍스트 주의 토스트 기준",
+      "default": 80
+    },
+    "alertPercent": {
+      "type": "number",
+      "title": "경고 알림 기준(%)",
+      "description": "5h·7d·컨텍스트 경고 토스트 기준",
+      "default": 95
+    },
+    "autoOpenPanel": {
+      "type": "boolean",
+      "title": "사이드 패널 자동 열기",
+      "description": "세션 시작 시 넓은(144칸 이상) 터미널이면 패널을 연다",
+      "default": true
+    },
+    "neonToolRows": {
+      "type": "boolean",
+      "title": "도구 행 네온",
+      "description": "도구 호출 행에 도구별 아이콘·색을 입힌다",
+      "default": true
+    }
+  }
+}
