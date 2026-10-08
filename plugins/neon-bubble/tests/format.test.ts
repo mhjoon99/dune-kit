@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'claude-code/testing'
 
 import { classifyInput, flowGate, isShortAck, rememberPrompt } from '../hooks/flow'
-import { cellWidth, formatDuration, formatReset, gauge, gradientAt, nextAlerts, planBand, prettyModel, sectionLimits, sparkline } from '../hooks/format'
+import { cellWidth, formatDuration, formatReset, gauge, gradientAt, isFableWindow, nextAlerts, planBand, prettyModel, row3Text, sectionLimits, sparkline } from '../hooks/format'
 import { longestCommentBlock } from '../hooks/guard-rules'
 
 const NOW = Date.parse('2026-10-08T10:00:00Z')
@@ -26,6 +26,9 @@ describe('리셋 시간 포맷', () => {
     expect(formatDuration(42 * MIN)).toBe('42m')
     expect(formatDuration(65 * MIN + 30_000)).toBe('1h05m')
     expect(formatDuration(3 * 24 * 60 * MIN)).toBe('3d00h')
+    expect(formatDuration((2 * 24 + 5) * 60 * MIN + 20 * MIN)).toBe('2d05h')
+    expect(formatDuration(24 * 60 * MIN - MIN)).toBe('23h59m')
+    expect(formatDuration(30 * 60 * MIN)).toBe('1d06h')
   })
 })
 
@@ -51,7 +54,7 @@ describe('게이지', () => {
       five: { percent: 81, reset: '1h23m' },
       seven: { percent: 24 },
     }
-    expect(planBand(d, 120)).toEqual({ cells: 12, smallCells: 6, showProject: true, showCost: true, showElapsed: true })
+    expect(planBand(d, 120)).toEqual({ cells: 12, smallCells: 6, showProject: true, showCost: true, showElapsed: true, showWeekReset: true })
     const mid = planBand(d, 52)
     expect(mid.cells).toBeLessThan(12)
     expect(mid.cells).toBeGreaterThanOrEqual(6)
@@ -59,6 +62,20 @@ describe('게이지', () => {
     expect(narrow.cells).toBe(6)
     expect(narrow.showProject).toBe(false)
     expect(narrow.showCost).toBe(false)
+  })
+  test('3행만 넘치면 주간 리셋만 빼고 1·2행은 그대로', () => {
+    const d = {
+      model: 'Opus 5.5',
+      ctxPercent: 62,
+      costUsd: 1.84,
+      five: { percent: 81, reset: '1h23m' },
+      seven: { percent: 24, reset: '2d05h' },
+      fable: { percent: 40, reset: '2d05h' },
+    }
+    expect(row3Text(d, planBand(d, 120))).toBe('🚀 5h ●●●●●●●●●●●● 81% ↻ 1h23m   🪐 7d ●●●●●● 24% ↻ 2d05h   🪶 Fable ●●●●●● 40% ↻ 2d05h')
+    const plan = planBand(d, 70)
+    expect(plan).toMatchObject({ cells: 6, showProject: true, showCost: true, showElapsed: true, showWeekReset: false })
+    expect(row3Text(d, plan)).toBe('🚀 5h ●●●●●● 81% ↻ 1h23m   🪐 7d ●●●●●● 24%   🪶 Fable ●●●●●● 40%')
   })
   test('표시 이름, 칸 폭, 스파크라인', () => {
     expect(prettyModel('claude-opus-5-5[1m]')).toBe('Opus 5.5')
@@ -87,6 +104,12 @@ describe('사용량 알림', () => {
     expect(c.toasts).toEqual(['⚠️ 5시간 사용량 96% · 1h23m 후 리셋'])
     const d = nextAlerts(c.memo, { limits: [{ kind: 'five_hour', percentUsed: 82, resetsAt: iso(NOW + 300 * MIN) }] }, NOW, t)
     expect(d.toasts).toHaveLength(1)
+  })
+  test('Fable 주간 창도 알린다', () => {
+    expect(isFableWindow('seven_day_fable')).toBe(true)
+    expect(isFableWindow('seven_day_opus')).toBe(false)
+    const a = nextAlerts({}, { limits: [{ kind: 'seven_day_fable', percentUsed: 82, resetsAt: iso(NOW + (2 * 24 * 60 + 320) * MIN) }] }, NOW, t)
+    expect(a.toasts).toEqual(['🪶 Fable 주간 사용량 82% · 2d05h 후 리셋'])
   })
   test('컨텍스트는 compact 로 내려갔다 다시 넘으면 다시 알림', () => {
     const a = nextAlerts({}, { ctxPercent: 96, limits: [] }, NOW, t)

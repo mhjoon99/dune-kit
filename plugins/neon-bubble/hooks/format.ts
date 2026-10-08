@@ -44,11 +44,11 @@ export function percentStyle(percent: number, warn = 80, alert = 95): { color: s
   return { color: C.pct, bold: false }
 }
 
-/** 남은/지난 시간: 분 단위 내림, `45m` / `1h05m` / `2d03h`. */
+/** 남은/지난 시간: 분 단위 내림, `45m` / `1h05m` / 하루 이상은 시간까지 `2d05h`. */
 export function formatDuration(ms: number): string {
   const minutes = Math.max(0, Math.floor(ms / 60000))
   const h = Math.floor(minutes / 60)
-  if (h >= 48) return `${Math.floor(h / 24)}d${String(h % 24).padStart(2, '0')}h`
+  if (h >= 24) return `${Math.floor(h / 24)}d${String(h % 24).padStart(2, '0')}h`
   if (h > 0) return `${h}h${String(minutes % 60).padStart(2, '0')}m`
   return `${minutes}m`
 }
@@ -61,7 +61,10 @@ export function formatReset(resetsAt: string | undefined, now: number): string |
   return formatDuration(at - now)
 }
 
-export const formatCost = (usd: number) => `$${usd.toFixed(2)}`
+/** Fable 전용 주간 창: 창 이름에 `fable` 이 들어간 것(`seven_day_fable` 등). */
+export const isFableWindow = (kind: string) => /fable/i.test(kind)
+
+export const formatCost =(usd: number) => `$${usd.toFixed(2)}`
 
 /** `claude-opus-5-5[1m]` → `Opus 5.5`; 이미 표시 이름이면 그대로. */
 export function prettyModel(model: string): string {
@@ -109,6 +112,7 @@ export type BandInput = {
   elapsed?: string
   five?: { percent: number; reset?: string }
   seven?: { percent: number; reset?: string }
+  fable?: { percent: number; reset?: string }
   forecast?: string
 }
 
@@ -118,13 +122,17 @@ export type BandPlan = {
   showProject: boolean
   showCost: boolean
   showElapsed: boolean
+  showWeekReset: boolean
 }
 
 const SEP = '  ✧  '
 
+// ⚡ 는 글꼴에 따라 흑백 글리프로 나와서 VS16(U+FE0F)으로 컬러 이모지를 요청한다
+export const MODEL_ICON = '⚡️'
+
 export function row1Text(d: BandInput, showProject: boolean): string {
   const parts: string[] = []
-  if (d.model !== undefined) parts.push(`⚡ ${d.model}`)
+  if (d.model !== undefined) parts.push(`${MODEL_ICON} ${d.model}`)
   if (d.branch !== undefined) {
     const diff = d.diff !== undefined && (d.diff.added > 0 || d.diff.removed > 0) ? ` +${d.diff.added} −${d.diff.removed}` : ''
     parts.push(`🔮 ${d.branch}${diff}`)
@@ -141,27 +149,30 @@ export function row2Text(d: BandInput, plan: Pick<BandPlan, 'cells' | 'showCost'
   return parts.join('   ')
 }
 
-export function row3Text(d: BandInput, cells: number, smallCells: number): string {
+const resetTail = (reset: string | undefined, show = true) => (show && reset !== undefined ? ` ↻ ${reset}` : '')
+
+export function row3Text(d: BandInput, plan: Pick<BandPlan, 'cells' | 'smallCells' | 'showWeekReset'>): string {
   const parts: string[] = []
-  if (d.five !== undefined) parts.push(`🚀 5h ${'●'.repeat(cells)} ${Math.round(d.five.percent)}%${d.five.reset !== undefined ? ` ↻ ${d.five.reset}` : ''}`)
-  if (d.seven !== undefined) parts.push(`🪐 7d ${'●'.repeat(smallCells)} ${Math.round(d.seven.percent)}%`)
+  if (d.five !== undefined) parts.push(`🚀 5h ${'●'.repeat(plan.cells)} ${Math.round(d.five.percent)}%${resetTail(d.five.reset)}`)
+  if (d.seven !== undefined) parts.push(`🪐 7d ${'●'.repeat(plan.smallCells)} ${Math.round(d.seven.percent)}%${resetTail(d.seven.reset, plan.showWeekReset)}`)
+  if (d.fable !== undefined) parts.push(`🪶 Fable ${'●'.repeat(plan.smallCells)} ${Math.round(d.fable.percent)}%${resetTail(d.fable.reset, plan.showWeekReset)}`)
   return parts.join('   ')
 }
 
-/** 폭에 맞춰 게이지 칸(12→최소 6)을 줄이고, 그래도 넘치면 경로→비용→경과 순으로 뺀다. */
+/** 폭에 맞춰 게이지 칸(12→최소 6)을 줄이고, 그래도 넘치는 행에서만 1행 경로, 2행 비용→경과, 3행 주간 리셋을 뺀다. */
 export function planBand(d: BandInput, columns: number): BandPlan {
-  const plan: BandPlan = { cells: 12, smallCells: 6, showProject: true, showCost: true, showElapsed: true }
-  const fits = () =>
-    cellWidth(row1Text(d, plan.showProject)) <= columns &&
-    cellWidth(row2Text(d, plan)) <= columns &&
-    cellWidth(row3Text(d, plan.cells, plan.smallCells)) <= columns
-  while (!fits() && plan.cells > 6) {
+  const plan: BandPlan = { cells: 12, smallCells: 6, showProject: true, showCost: true, showElapsed: true, showWeekReset: true }
+  const fit1 = () => cellWidth(row1Text(d, plan.showProject)) <= columns
+  const fit2 = () => cellWidth(row2Text(d, plan)) <= columns
+  const fit3 = () => cellWidth(row3Text(d, plan)) <= columns
+  while (!(fit1() && fit2() && fit3()) && plan.cells > 6) {
     plan.cells -= 1
     plan.smallCells = Math.min(6, plan.cells)
   }
-  if (!fits()) plan.showProject = false
-  if (!fits()) plan.showCost = false
-  if (!fits()) plan.showElapsed = false
+  if (!fit1()) plan.showProject = false
+  if (!fit2()) plan.showCost = false
+  if (!fit2()) plan.showElapsed = false
+  if (!fit3()) plan.showWeekReset = false
   return plan
 }
 
@@ -173,6 +184,8 @@ const LABEL: Record<string, { icon: string; name: string }> = {
   five_hour: { icon: '🚀', name: '5시간' },
   seven_day: { icon: '🪐', name: '7일' },
 }
+
+const labelOf = (kind: string) => LABEL[kind] ?? (isFableWindow(kind) ? { icon: '🪶', name: 'Fable 주간' } : undefined)
 
 /**
  * 측정값으로 알림 단계를 갱신하고 새로 띄울 토스트를 돌려준다.
@@ -189,7 +202,7 @@ export function nextAlerts(
   const levelOf = (p: number) => (p >= t.alert ? 2 : p >= t.warn ? 1 : 0)
 
   for (const limit of measure.limits) {
-    const label = LABEL[limit.kind]
+    const label = labelOf(limit.kind)
     if (label === undefined) continue
     const prev = next[limit.kind]
     const base = prev !== undefined && prev.resetsAt === limit.resetsAt ? prev.level : 0

@@ -37,6 +37,7 @@ describe('상태 띠', () => {
       rateLimits: [
         { kind: 'five_hour', percentUsed: 81, resetsAt: iso(NOW + 83 * MIN + 20_000) },
         { kind: 'seven_day', percentUsed: 24, resetsAt: iso(NOW + 4000 * MIN) },
+        { kind: 'seven_day_fable', percentUsed: 40, resetsAt: iso(NOW + (2 * 24 * 60 + 320) * MIN) },
       ],
       cost: { usd: 1.84 },
       changed: ['context', 'rateLimits', 'cost'],
@@ -48,12 +49,12 @@ describe('상태 띠', () => {
       expect(await ui.find({ key: 'row3' })).toBeDefined()
       expect(await ui.find({ key: 'row4' })).toBeUndefined()
       const all = (await texts(ui)).join('')
-      for (const part of ['⚡ Opus 5.5', '🔮 feat/statusline', ' +12', ' −3', '🫧 repo', '🧠 ', ' 62%', '💎 $1.84', '🌙 42m', '🚀 5h ', ' 81%', ' ↻ 1h23m', '🪐 7d ', ' 24%']) {
+      for (const part of ['⚡️ Opus 5.5', '🔮 feat/statusline', ' +12', ' −3', '🫧 repo', '🧠 ', ' 62%', '💎 $1.84', '🌙 42m', '🚀 5h ', ' 81%', ' ↻ 1h23m', '🪐 7d ', ' 24%', ' ↻ 2d18h', '🪶 Fable ', ' 40%', ' ↻ 2d05h']) {
         expect(all, `${surface}: ${part}`).toContain(part)
       }
       expect(all).not.toContain('loading')
       const cells = (await texts(ui)).filter(t => t === '●' || t === '○')
-      expect(cells).toHaveLength(12 + 12 + 6)
+      expect(cells).toHaveLength(12 + 12 + 6 + 6)
       const pct81 = await ui.find({ type: 'Text', text: ' 81%' })
       expect(pct81?.props.color).toBe('#ffb86c')
       await ui.unmount()

@@ -2,11 +2,7 @@
 
 Claude Code **Mods**(function hooks 플러그인)입니다(v0.2). 프롬프트 위 네온 버블 상태 띠, 스피너 꼬리·턴 요약 줄·컨텍스트 예보, 사용량 알림, 사이드 패널, 차단/묻는 가드, flow 단위 자동 compact, 편집 리플레이(`/replay`), 서브에이전트 모델 분배(`/model-route`), 네온 도구 행을 더합니다. Windows Terminal / VS Code 터미널(PowerShell)과 JetBrains Mono(Nerd Font 아님) 기준으로 만들었으며, Nerd Font 전용 글리프는 쓰지 않습니다.
 
-```
-⚡️ Opus 5.5  ✧  🔮 feat/statusline +12 −3  ✧  🫧 interweb-api
-🧠 ●●●●●●●○○○○○ 62%   💎 $1.84  🌙 42m
-🚀 5h ●●●●●●●●●●○○ 81% ↻ 1h23m   🪐 7d ●○○○○○ 24% ↻ 2d18h
-```
+<img src="assets/band.png" width="760" alt="네온 상태 띠: ⚡️ Opus 5.5 ✧ 🔮 feat/statusline +12 −3 ✧ 🫧 interweb-api / 🧠 컨텍스트 62% · ☁️ ~4턴 💎 $1.84 🌙 42m / 🚀 5h 81% ↻ 1h23m 🪐 7d 24% ↻ 2d18h 🪶 Fable 40% ↻ 2d05h">
 
 ## 설치
 
@@ -31,16 +27,34 @@ claude plugin install neon-bubble@dune-kit
 ## 기능
 
 ### 1. 상태 띠 (프롬프트 위 3줄)
-- 1행: 모델 표시 이름, git 브랜치와 작업트리 변경 줄수(`+` 시안, `−` 핑크), 프로젝트 폴더명.
-- 2행: 컨텍스트 사용률 게이지(12칸)와 예보(` · ☁️ ~4턴`, 10턴 넘으면 `10+턴`, 추정 불가면 생략), 비용(없으면 생략), 세션 경과 시간.
-- 3행: 5시간·7일 레이트리밋. 리셋까지 남은 시간은 **`resetsAt - 지금`** 으로만 계산합니다(분 단위 내림). 구독이 아니어서 값이 없으면 이 행은 생략.
-- 배경색 없이 글자색만 씁니다. 채운 칸 `●` 은 칸 위치마다 `#ff6ac1 → #b388ff → #5ce1e6` 그라데이션, 빈 칸 `○` 은 `#3d3a4a`. 퍼센트는 80% 이상 주황, 95% 이상 빨강 굵게.
-- 브랜치는 `git` 프로세스 없이 `.git/HEAD` 를 직접 읽습니다(detached 면 짧은 SHA, worktree 의 `gitdir:` 도 처리). diff 줄수는 `git diff --shortstat HEAD`.
-- 갱신: 세션 시작, Bash/PowerShell/Edit/Write/MultiEdit 실행 뒤, 그리고 5초마다(브랜치는 2초). 실패하면 마지막 값을 그대로 그립니다. "loading..." 은 없고, 처음 값이 없으면 그 칸만 빠집니다.
-- 폭이 좁으면 게이지를 최소 6칸까지 줄이고, 그래도 넘치면 폴더명 → 비용 → 경과 시간 순으로 뺍니다.
+
+<img src="assets/row1.png" width="555" alt="1행: 모델 표시 이름, git 브랜치, 변경 줄수(+ 시안, − 핑크), 프로젝트 폴더">
+
+<img src="assets/row2.png" width="491" alt="2행: 컨텍스트 사용률 게이지 12칸, 가득 찰 때까지 남은 턴 예보, 세션 비용, 경과 시간">
+
+예보는 10턴이 넘으면 `10+턴`, 추정할 수 없으면 생략합니다. 비용을 모르면 비용 칸도 생략합니다.
+
+<img src="assets/row3.png" width="760" alt="3행: 5시간 한도와 리셋까지 남은 시간, 7일 한도, Fable 주간 한도">
+
+리셋까지 남은 시간은 **`resetsAt - 지금`** 으로만 계산합니다(분 단위 내림, 하루 이상이면 시간까지 `2d05h`). Fable 은 창 이름에 `fable` 이 들어간 창이 들어올 때만 그리고, 구독이 아니어서 값이 없으면 3행 전체를 생략합니다.
+
+<img src="assets/colors.png" width="460" alt="색: 채운 칸은 #ff6ac1 → #b388ff → #5ce1e6 그라데이션, 빈 칸 #3d3a4a, 퍼센트는 80% 이상 주황, 95% 이상 빨강 굵게">
+
+<img src="assets/narrow.png" width="760" alt="넓을 때(120칸)와 좁을 때(72칸) 비교: 좁으면 게이지 6칸, 주간 리셋 생략">
+
+폭이 좁으면 게이지를 최소 6칸까지 줄이고, 그래도 넘치는 행에서만 1행은 폴더명, 2행은 비용 → 경과 시간, 3행은 7d·Fable 의 리셋 시간을 뺍니다.
+
+| 항목 | 동작 |
+| --- | --- |
+| 브랜치 | `git` 프로세스 없이 `.git/HEAD` 를 직접 읽음(detached 면 짧은 SHA, worktree 의 `gitdir:` 도 처리) |
+| 변경 줄수 | `git diff --shortstat HEAD` |
+| 갱신 | 세션 시작, Bash/PowerShell/Edit/Write/MultiEdit 실행 뒤, 5초마다(브랜치는 2초) |
+| 실패·빈 값 | 실패하면 마지막 값을 그대로 그림. "loading..." 없이 값이 없는 칸만 빠짐 |
+
+이미지는 `node assets/render.mjs` 로 `hooks/format.ts` 의 실제 색·배치를 써서 다시 만들 수 있습니다(Windows Edge 필요).
 
 ### 2. 사용량 알림 (토스트)
-5시간·7일·컨텍스트가 `warnPercent`(80)를 처음 넘으면 주의, `alertPercent`(95)를 넘으면 경고 토스트를 한 번 띄웁니다. 같은 창·같은 단계는 리셋(`resetsAt` 변경) 전까지 다시 띄우지 않고, 컨텍스트는 compact 로 주의선 아래로 내려갔다가 다시 넘으면 다시 알립니다.
+5시간·7일·Fable 주간·컨텍스트가 `warnPercent`(80)를 처음 넘으면 주의, `alertPercent`(95)를 넘으면 경고 토스트를 한 번 띄웁니다. 같은 창·같은 단계는 리셋(`resetsAt` 변경) 전까지 다시 띄우지 않고, 컨텍스트는 compact 로 주의선 아래로 내려갔다가 다시 넘으면 다시 알립니다.
 
 ### 3. 사이드 패널 — `/side-panel`
 `/side-panel` 로 열고 닫습니다. `autoOpenPanel` 이 켜져 있으면 세션 시작 때 열기를 요청하며, 엔진은 터미널이 144칸 이상일 때만 자리를 줍니다(좁으면 대기했다가 넓히면 나타남).

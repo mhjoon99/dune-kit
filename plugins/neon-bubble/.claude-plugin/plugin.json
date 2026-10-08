@@ -1,6 +1,6 @@
 {
   "name": "neon-bubble",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "네온 버블 상태 띠·스피너·턴 요약, 사용량 알림·예보, 사이드 패널, 차단/묻는 가드, flow 자동 compact, 편집 리플레이, 서브에이전트 모델 분배",
   "author": {
     "name": "mhjoon99"
@@ -40,13 +40,13 @@
     "warnPercent": {
       "type": "number",
       "title": "주의 알림 기준(%)",
-      "description": "5h·7d·컨텍스트 주의 토스트 기준",
+      "description": "5h·7d·Fable·컨텍스트 주의 토스트 기준",
       "default": 80
     },
     "alertPercent": {
       "type": "number",
       "title": "경고 알림 기준(%)",
-      "description": "5h·7d·컨텍스트 경고 토스트 기준",
+      "description": "5h·7d·Fable·컨텍스트 경고 토스트 기준",
       "default": 95
     },
     "autoOpenPanel": {

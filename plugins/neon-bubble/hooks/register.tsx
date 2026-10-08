@@ -8,6 +8,7 @@ import { COMPACT_INSTRUCTIONS, FLOW_LABELS, classifyInput, flowGate, rememberPro
 import {
   ASK_REJECTED,
   C,
+  MODEL_ICON,
   PROMPT_HINT_TAIL,
   askQuestion,
   forecastLabel,
@@ -16,6 +17,7 @@ import {
   formatReset,
   gauge,
   hhmm,
+  isFableWindow,
   makeDiff,
   nextAlerts,
   percentStyle,
@@ -282,6 +284,7 @@ async function drawBand($: EngineInterface, e: BandEvent, t: Thresholds): Promis
   ])
   const five = usage?.limits.find(l => l.kind === 'five_hour')
   const seven = usage?.limits.find(l => l.kind === 'seven_day')
+  const fable = usage?.limits.find(l => isFableWindow(l.kind))
   const data: BandInput = {
     model: model === null ? undefined : prettyModel(model),
     branch: branch ?? undefined,
@@ -292,6 +295,7 @@ async function drawBand($: EngineInterface, e: BandEvent, t: Thresholds): Promis
     elapsed: usage?.startedAt !== undefined && now > 0 ? formatDuration(now - usage.startedAt) : undefined,
     five: five === undefined ? undefined : { percent: five.percentUsed, reset: formatReset(five.resetsAt, now) },
     seven: seven === undefined ? undefined : { percent: seven.percentUsed, reset: formatReset(seven.resetsAt, now) },
+    fable: fable === undefined ? undefined : { percent: fable.percentUsed, reset: formatReset(fable.resetsAt, now) },
     forecast: forecastLabel(forecastTurns(sizes, window ?? undefined)),
   }
   const plan = planBand(data, e.props.bodyColumns)
@@ -314,7 +318,7 @@ async function drawBand($: EngineInterface, e: BandEvent, t: Thresholds): Promis
   }
 
   const row1: RenderElement[] = []
-  if (data.model !== undefined) row1.push(<Text color={C.text}>{`⚡ ${data.model}`}</Text>)
+  if (data.model !== undefined) row1.push(<Text color={C.text}>{`${MODEL_ICON} ${data.model}`}</Text>)
   if (data.branch !== undefined) {
     if (row1.length > 0) row1.push(sep())
     row1.push(<Text color={C.text}>{`🔮 ${data.branch}`}</Text>)
@@ -350,6 +354,12 @@ async function drawBand($: EngineInterface, e: BandEvent, t: Thresholds): Promis
   if (data.seven !== undefined) {
     if (row3.length > 0) row3.push(gap())
     row3.push(<Text color={C.text}>{'🪐 7d '}</Text>, ...meter(data.seven.percent, plan.smallCells))
+    if (plan.showWeekReset && data.seven.reset !== undefined) row3.push(<Text color={C.sub}>{` ↻ ${data.seven.reset}`}</Text>)
+  }
+  if (data.fable !== undefined) {
+    if (row3.length > 0) row3.push(gap())
+    row3.push(<Text color={C.text}>{'🪶 Fable '}</Text>, ...meter(data.fable.percent, plan.smallCells))
+    if (plan.showWeekReset && data.fable.reset !== undefined) row3.push(<Text color={C.sub}>{` ↻ ${data.fable.reset}`}</Text>)
   }
 
   // 값이 없는 칸·행은 그리지 않는다("loading..." 없음)
