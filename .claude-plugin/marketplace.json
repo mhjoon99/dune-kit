@@ -9,6 +9,11 @@
       "name": "neon-bubble",
       "source": "./plugins/neon-bubble",
       "description": "네온 상태 띠 · 사이드 패널 · git 가드 · flow 단위 자동 compact"
+    },
+    {
+      "name": "work-kit",
+      "source": "./plugins/work-kit",
+      "description": "/init 에 업무 하네스(PRD·Card·커밋·이슈·보고 규칙, 깃랩 템플릿, 프로젝트 메모리)를 합친다"
     }
   ]
 }

@@ -1,0 +1,8 @@
+{
+  "name": "work-kit",
+  "version": "0.1.0",
+  "description": "/init 에 업무 하네스(PRD·Card·커밋·이슈·보고 규칙, 깃랩 템플릿, 프로젝트 메모리)를 합치고 /prd /tech-spec /card /daily-report /weekly-report 를 준다",
+  "author": {
+    "name": "mhjoon99"
+  }
+}
