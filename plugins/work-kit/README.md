@@ -52,7 +52,7 @@ work-kit 없이 내장 흐름만 쓰려면 `/init --plain`.
 | 3. 이슈 | `rules/issues.md` `detected-issues.md`, `.gitlab/issue_templates/Bug.md` `Incident.md`, `core.md` §4 |
 | 4. 보고 | `rules/weekly-report.md`, `core.md` §2 |
 | 항상. 저장소 정책 | `core.md` §5, `.gitignore` 의 `docs/*` |
-| 항상. 작업 태도 | `rules/work-attitude.md`, `.claude/settings.local.json` 의 `autoMemoryDirectory` → `.claude/memory/` |
+| 항상. 작업 태도 | `rules/work-attitude.md`, `.claude/settings.local.json` 의 `autoMemoryDirectory` → `.claude/memory/`(`.gitignore` 에 더해 git 에서 뺀다) |
 
 1~4 는 `/init` 때마다 고르고, 「항상.」 두 묶음은 고르지 않아도 `/init` 을 돌리면 늘 들어갑니다.
 

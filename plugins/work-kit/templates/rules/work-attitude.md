@@ -31,4 +31,5 @@ description: 작업 태도 — 결정과 착수 구분, 사내 매뉴얼 옮기�
 
 - 자동 메모리는 **이 저장소의 `.claude/memory/`** 에 쌓인다(`.claude/settings.local.json` 의 `autoMemoryDirectory`).
   사용자가 직접 열어 보고 고치는 자리다 — 사용자가 고친 내용은 되돌리지 않는다
+- `.claude/memory/` 는 **git 에 올리지 않는다**(`.gitignore` 에 있다). 추적 대상으로 바꾸지 않는다
 - 사용자 지시는 메모리에만 두지 말고 **해당 룰에도 넣는다.** 메모리는 "왜" 를, 룰은 "어떻게" 를 가진다

@@ -77,7 +77,8 @@ export const BUNDLES: readonly Bundle[] = [
     extra:
       '`.claude/settings.local.json` 에 `"autoMemoryDirectory": "{{projectAbs}}/.claude/memory"` 를 **병합**한다' +
       '(다른 키는 건드리지 않는다. 절대경로만 허용되는 키라 local 설정에 둔다. 경로 구분자는 `/`). ' +
-      '`.claude/memory/` 가 없으면 빈 `MEMORY.md` 하나로 만든다. `.claude/settings.local.json` 이 `.gitignore` 에 없으면 더한다.',
+      '`.claude/memory/` 가 없으면 빈 `MEMORY.md` 하나로 만든다. ' +
+      '`.claude/settings.local.json` 과 `.claude/memory/` 가 `.gitignore` 에 없으면 더한다(메모리는 git 에 올리지 않는다. 묻지 않는다).',
   },
 ]
 
@@ -175,7 +176,6 @@ ${placeholders}
 - \`**[work-kit 묶음]** 1 업무 매뉴얼, 2 Git·커밋·MR … + 항상: 저장소 정책, 작업 태도\` 한 줄
 - 만들 파일마다 한 줄(\`**[rule]** .claude/rules/card.md — Card 형식\` 처럼)
 - 채운 자리표시값을 \`이름 = 값\` 으로 한 덩어리 — 사용자가 여기서 고친다
-- \`.claude/memory/\` 를 git 에서 뺄지(기본: \`.gitignore\` 에 더해 뺀다) 한 줄
 확인 질문은 내장 것 하나로 같이 받는다.
 
 ## ⑥ 생성

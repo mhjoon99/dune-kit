@@ -37,6 +37,11 @@ describe('지시문', () => {
     expect(text).toContain('"autoMemoryDirectory": "{{projectAbs}}/.claude/memory"')
     expect(text).toContain('.claude/settings.local.json')
   })
+
+  test('메모리 폴더는 묻지 않고 git 에서 뺀다', async () => {
+    expect(text).toContain('`.claude/settings.local.json` 과 `.claude/memory/` 가 `.gitignore` 에 없으면 더한다')
+    expect(text).not.toContain('git 에서 뺄지')
+  })
 })
 
 describe('훅', () => {
