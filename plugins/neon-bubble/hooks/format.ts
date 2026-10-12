@@ -249,7 +249,7 @@ export function sectionLimits(rows: number): { edits: number; calls: number; mem
   }
 }
 
-// ── 턴 요약·스피너·컨텍스트 예보 ────────────────────────────
+// ── 턴 요약·스피너·컨텍스트 남은 턴 ────────────────────────────
 
 /** 1234 → `1.2k`, 999 → `999`. */
 export const formatTokens = (n: number) => (n < 1000 ? `${Math.round(n)}` : `${(n / 1000).toFixed(1)}k`)
@@ -301,7 +301,7 @@ export function forecastTurns(sizes: readonly number[], window: number | undefin
 }
 
 export const forecastLabel = (turns: number | undefined) =>
-  turns === undefined ? undefined : turns > 10 ? '☁️ 10+턴' : `☁️ ~${turns}턴`
+  turns === undefined ? undefined : turns > 10 ? `⏳ ${Math.min(100, Math.floor(turns / 10) * 10)}+턴` : `⏳ ~${turns}턴`
 
 // ── 편집 리플레이 diff ─────────────────────────────────────
 

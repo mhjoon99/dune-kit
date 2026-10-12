@@ -49,6 +49,7 @@ import {
   joinPath,
   longestCommentBlock,
   needsUntrackedEnv,
+  fileHref,
   parentDir,
   parseCommand,
   parseHead,
@@ -397,7 +398,7 @@ async function saveNotes($: EngineInterface): Promise<void> {
   if (key !== null) await $.store.set(key, notes).catch(() => undefined)
 }
 
-async function drawPanel($: EngineInterface, e: PaneEvent): Promise<RenderElement> {
+async function drawPanel($: EngineInterface, e: PaneEvent, linkScheme: string): Promise<RenderElement> {
   const [edits, calls, samples, memory, notes, sizes, window] = await Promise.all([
     read($, editsAtom),
     read($, callsAtom),
@@ -409,7 +410,7 @@ async function drawPanel($: EngineInterface, e: PaneEvent): Promise<RenderElemen
   ])
   const forecast = forecastLabel(forecastTurns(sizes, window ?? undefined))
   const els = $.ui.resolve(e)
-  const { Box, Text, Button } = els
+  const { Box, Text, Button, Link } = els
   const Input = 'Input' in els ? els.Input : undefined
   const limit = sectionLimits(e.props.scroll.bodyRows || e.viewport?.rows || 40)
   const width = Math.max(10, e.props.bodyColumns)
@@ -445,12 +446,15 @@ async function drawPanel($: EngineInterface, e: PaneEvent): Promise<RenderElemen
       <Box flexDirection="column">
         {title('✏️ 수정한 파일', TITLE.edits)}
         {editRows.length === 0 && dim('아직 없음')}
-        {editRows.map(row => (
-          <Text color={C.text} wrap="truncate-start">
-            {`${row.path}`}
-            <Text color={C.sub}>{` ×${row.count}`}</Text>
-          </Text>
-        ))}
+        {editRows.map(row => {
+          const href = e.surface === 'mobile' || row.file === undefined ? undefined : fileHref(row.file, linkScheme)
+          return (
+            <Text color={C.text} wrap="truncate-start">
+              {href === undefined ? row.path : <Link href={href}>{row.path}</Link>}
+              <Text color={C.sub}>{` ×${row.count}`}</Text>
+            </Text>
+          )
+        })}
       </Box>
       <Box flexDirection="column">
         {title('🛠 도구 호출', TITLE.calls)}
@@ -474,7 +478,7 @@ async function drawPanel($: EngineInterface, e: PaneEvent): Promise<RenderElemen
           <Text color={TITLE.edits}>{fiveLine.trim() === '' ? '—' : fiveLine}</Text>
           {lastFive === undefined ? '' : ` ${Math.round(lastFive)}%`}
         </Text>
-        <Text color={C.sub}>{forecast === undefined ? '예보: 아직 추정 불가' : `예보: 가득 찰 때까지 ${forecast.replace('☁️ ', '')}`}</Text>
+        <Text color={C.sub}>{forecast === undefined ? '남은 턴: 아직 추정 불가' : `남은 턴: 가득 찰 때까지 ${forecast.replace('⏳ ', '')}`}</Text>
       </Box>
       <Box flexDirection="column">
         {title('💾 메모리 변경', TITLE.memory)}
@@ -744,6 +748,7 @@ export const register: Register = (on, options) => {
   const thresholds = { warn: num(options, 'warnPercent', 80), alert: num(options, 'alertPercent', 95) }
   const autoOpenPanel = bool(options, 'autoOpenPanel', true)
   const neonToolRows = bool(options, 'neonToolRows', true)
+  const editLinkScheme = /^[a-z][a-z0-9+.-]*$/i.test(str(options, 'editLinkScheme', 'file')) ? str(options, 'editLinkScheme', 'file') : 'file'
 
   // ── 세션 시작: 명령 등록, 초기값, 타이머, 패널 자동 열기 ──
   on('session.start', async ($, e, next) => {
@@ -950,7 +955,7 @@ export const register: Register = (on, options) => {
         await update($, editsAtom, list => {
           const found = list.find(x => x.path === rel)
           const rest = list.filter(x => x.path !== rel)
-          return [...rest, { path: rel, count: (found?.count ?? 0) + 1, at }].slice(-100)
+          return [...rest, { path: rel, count: (found?.count ?? 0) + 1, at, file }].slice(-100)
         })
       }
       if (!failed && FILE_TOOLS.has(tool) && file !== '') {
@@ -1077,7 +1082,7 @@ export const register: Register = (on, options) => {
   // ── 그리기 ──
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => (await drawBand($, e, thresholds)) ?? next(e))
 
-  on('ui.render', { component: 'Pane', requestId: PANE_ID }, ($, e) => drawPanel($, e))
+  on('ui.render', { component: 'Pane', requestId: PANE_ID }, ($, e) => drawPanel($, e, editLinkScheme))
 
   on('ui.render', { component: 'Pane', requestId: REPLAY_PANE }, ($, e) => drawReplay($, e))
 

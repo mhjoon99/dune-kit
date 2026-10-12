@@ -42,7 +42,7 @@ describe('미리보기 문자열', () => {
   })
 })
 
-describe('턴 요약·스피너·예보', () => {
+describe('턴 요약·스피너·남은 턴', () => {
   test('턴 요약 포맷과 캐시율', () => {
     const usage = { input_tokens: 1000, output_tokens: 1234, cache_read_input_tokens: 10000, cache_creation_input_tokens: 1300 }
     expect(turnSummary(12_400, 5, usage)).toBe('✓ 12s · 도구 5 · 입력 12.3k · 출력 1.2k · 캐시 81%')
@@ -53,13 +53,17 @@ describe('턴 요약·스피너·예보', () => {
     expect(spinnerSuffix(3, 12_900, 0.0412)).toBe(' · 🛠 3 · ⏱ 12s · 💎 $0.04')
     expect(spinnerSuffix(0, 0, undefined)).toBe(' · 🛠 0 · ⏱ 0s')
   })
-  test('예보: 최근 증가 평균으로 남은 턴', () => {
+  test('남은 턴: 최근 증가 평균으로 남은 턴', () => {
     expect(forecastTurns([10_000, 20_000, 30_000], 100_000)).toBe(7)
     expect(forecastTurns([10_000], 100_000)).toBeUndefined()
     expect(forecastTurns([50_000, 40_000], 100_000)).toBeUndefined()
     expect(forecastTurns([10_000, 11_000], 200_000)).toBe(189)
-    expect(forecastLabel(4)).toBe('☁️ ~4턴')
-    expect(forecastLabel(189)).toBe('☁️ 10+턴')
+    expect(forecastLabel(4)).toBe('⏳ ~4턴')
+    expect(forecastLabel(10)).toBe('⏳ ~10턴')
+    expect(forecastLabel(11)).toBe('⏳ 10+턴')
+    expect(forecastLabel(47)).toBe('⏳ 40+턴')
+    expect(forecastLabel(99)).toBe('⏳ 90+턴')
+    expect(forecastLabel(189)).toBe('⏳ 100+턴')
     expect(forecastLabel(undefined)).toBeUndefined()
   })
 })

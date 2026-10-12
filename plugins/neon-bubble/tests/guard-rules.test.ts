@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'claude-code/testing'
 
-import { cleanDryRunArgs, isEnvFile, isIpExempt, isMemoryPath, parseCommand, parseHead, parseShortstat, privateIps, scanCommand } from '../hooks/guard-rules'
+import { cleanDryRunArgs, fileHref, isEnvFile, isIpExempt, isMemoryPath, parseCommand, parseHead, parseShortstat, privateIps, scanCommand } from '../hooks/guard-rules'
 import type { ScanContext } from '../hooks/guard-rules'
 
 const ctx = (branch = 'feat/x', extra: Partial<ScanContext> = {}): ScanContext => ({
@@ -191,5 +191,11 @@ describe('사설 IP 와 경로', () => {
     expect(parseShortstat(' 3 files changed, 12 insertions(+), 3 deletions(-)')).toEqual({ added: 12, removed: 3 })
     expect(parseShortstat(' 1 file changed, 1 deletion(-)')).toEqual({ added: 0, removed: 1 })
     expect(parseShortstat('')).toEqual({ added: 0, removed: 0 })
+  })
+  test('파일 링크: 절대 경로만, 역슬래시·공백·# 을 다듬는다', () => {
+    expect(fileHref('/repo/src/a.ts')).toBe('file:///repo/src/a.ts')
+    expect(fileHref('C:\\Users\\me\\my app\\a#1.ts')).toBe('file:///C:/Users/me/my%20app/a%231.ts')
+    expect(fileHref('C:\\repo\\a.ts', 'vscode')).toBe('vscode://file/C:/repo/a.ts')
+    expect(fileHref('src/a.ts')).toBeUndefined()
   })
 })

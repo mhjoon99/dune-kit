@@ -723,6 +723,14 @@ export function relativeTo(root: string | undefined, path: string): string {
   return lowerP.startsWith(`${lowerR}/`) ? p.slice(r.length + 1) : p
 }
 
+/** 절대 경로 → 클릭하면 열리는 링크. `file` 이면 `file:///…`, 그 외(`vscode`·`cursor` 등)는 `<scheme>://file/…`. 절대 경로가 아니면 undefined. */
+export function fileHref(path: string, scheme = 'file'): string | undefined {
+  const p = path.replace(/\\/g, '/')
+  if (!/^([A-Za-z]:)?\//.test(p)) return undefined
+  const encoded = encodeURI(p.startsWith('/') ? p : `/${p}`).replace(/[?#]/g, encodeURIComponent)
+  return scheme === 'file' ? `file://${encoded}` : `${scheme}://file${encoded}`
+}
+
 /** `.git/HEAD` 내용 → 브랜치 이름, detached 면 짧은 SHA. */
 export function parseHead(text: string): string | undefined {
   const t = text.trim()

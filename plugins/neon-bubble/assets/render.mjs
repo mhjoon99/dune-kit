@@ -20,7 +20,7 @@ const DATA = {
   ctxPercent: 62,
   costUsd: 1.84,
   elapsed: '42m',
-  forecast: '☁️ ~4턴',
+  forecast: '⏳ ~4턴',
   five: { percent: 81, reset: '1h23m' },
   seven: { percent: 24, reset: '2d18h' },
   fable: { percent: 40, reset: '2d05h' },
@@ -116,7 +116,7 @@ const IMAGES = {
       [gap()],
       [parts.elapsed(), '경과 시간', '#ff6ac1'],
     ]),
-    { title: '2행 · 컨텍스트 / 예보 / 비용 / 경과' },
+    { title: '2행 · 컨텍스트 / 남은 턴 / 비용 / 경과' },
   ),
   row3: card(
     annotated([

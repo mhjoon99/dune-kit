@@ -269,6 +269,7 @@ describe('사이드 패널', () => {
     const before = (await texts(ui)).join('\n')
     expect(before).toContain('✏️ 수정한 파일')
     expect(before).toContain('src/a.ts')
+    expect((await ui.find({ type: 'Link' }))?.props.href).toBe('file:///repo/src/a.ts')
     expect(before).toContain('Bash npm test')
     await ui.input({ key: 'memo-input', text: '리뷰 코멘트 반영' })
     expect(await ui.find({ type: 'Text', text: '리뷰 코멘트 반영' })).toBeDefined()
@@ -322,7 +323,7 @@ async function drain<C, R>(stream: AsyncGenerator<C, R>): Promise<R> {
 
 const step = (agentId?: string) => ({ turnId: 't1', index: 0, model: 'claude-opus-5-5', messageCount: 3, ...(agentId === undefined ? {} : { agentId }) })
 
-describe('스피너·턴 요약·예보', () => {
+describe('스피너·턴 요약·남은 턴', () => {
   test('스피너 꼬리는 도구 수·경과·비용을 붙이고 1초마다 갱신', async ($, on) => {
     on('ui.render', { component: 'Spinner' }, ($$, e) => {
       const { Text } = $$.ui.resolve(e)
@@ -354,7 +355,7 @@ describe('스피너·턴 요약·예보', () => {
     expect(aborted.text).toBe('답')
   })
 
-  test('메인 요청의 usage 로 예보를 띠에 붙인다', async ($, on) => {
+  test('메인 요청의 usage 로 남은 턴을 띠에 붙인다', async ($, on) => {
     await bootTurns($, on)
     await $.session.measure({ context: { window: 100_000, percent: 40 }, rateLimits: [], changed: ['context'] })
     const turn = async (id: string) => {
@@ -363,14 +364,14 @@ describe('스피너·턴 요약·예보', () => {
       await $.turn.complete({ answer: '', durationMs: 1000, turnId: id, isAborted: false, reason: 'answer' })
     }
     await turn('t1')
-    // 한 턴만으로는 증가량을 모른다 → 예보 생략
+    // 한 턴만으로는 증가량을 모른다 → 남은 턴 생략
     let ui = await $.ui.mount({ plugin: 'neon-bubble', surface: 'terminal', component: 'AbovePrompt', props: BAND_PROPS })
-    expect(JSON.stringify(await ui.drawn())).not.toContain('☁️')
+    expect(JSON.stringify(await ui.drawn())).not.toContain('⏳')
     await ui.unmount()
     await turn('t2')
     ui = await $.ui.mount({ plugin: 'neon-bubble', surface: 'terminal', component: 'AbovePrompt', props: BAND_PROPS })
     // 100k 창, 턴당 +5k, 현재 ~23k → 10턴 넘게 남음
-    expect(JSON.stringify(await ui.drawn())).toContain('☁️ 10+턴')
+    expect(JSON.stringify(await ui.drawn())).toContain('⏳ 10+턴')
   })
 })
 

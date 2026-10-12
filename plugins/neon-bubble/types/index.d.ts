@@ -19,7 +19,7 @@ export type NeonUsage = {
 
 export type NeonDiff = { added: number; removed: number }
 
-export type NeonEdit = { path: string; count: number; at: number }
+export type NeonEdit = { path: string; count: number; at: number; file?: string }
 
 export type NeonCall = { at: number; tool: string; summary: string; failed: boolean }
 

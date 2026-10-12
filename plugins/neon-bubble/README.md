@@ -1,6 +1,6 @@
 # neon-bubble
 
-Claude Code **Mods**(function hooks 플러그인)입니다(v0.2). 프롬프트 위 네온 버블 상태 띠, 스피너 꼬리·턴 요약 줄·컨텍스트 예보, 사용량 알림, 사이드 패널, 차단/묻는 가드, flow 단위 자동 compact, 편집 리플레이(`/replay`), 서브에이전트 모델 분배(`/model-route`), 네온 도구 행을 더합니다. Windows Terminal / VS Code 터미널(PowerShell)과 JetBrains Mono(Nerd Font 아님) 기준으로 만들었으며, Nerd Font 전용 글리프는 쓰지 않습니다.
+Claude Code **Mods**(function hooks 플러그인)입니다(v0.2). 프롬프트 위 네온 버블 상태 띠, 스피너 꼬리·턴 요약 줄·컨텍스트 남은 턴 추정, 사용량 알림, 사이드 패널, 차단/묻는 가드, flow 단위 자동 compact, 편집 리플레이(`/replay`), 서브에이전트 모델 분배(`/model-route`), 네온 도구 행을 더합니다. Windows Terminal / VS Code 터미널(PowerShell)과 JetBrains Mono(Nerd Font 아님) 기준으로 만들었으며, Nerd Font 전용 글리프는 쓰지 않습니다.
 
 <img src="assets/band.png" width="760" alt="네온 상태 띠: ⚡️ Opus 5.5 ✧ 🔮 feat/statusline +12 −3 ✧ 🫧 interweb-api / 🧠 컨텍스트 62% · ☁️ ~4턴 💎 $1.84 🌙 42m / 🚀 5h 81% ↻ 1h23m 🪐 7d 24% ↻ 2d18h 🪶 Fable 40% ↻ 2d05h">
 
@@ -30,9 +30,9 @@ claude plugin install neon-bubble@dune-kit
 
 <img src="assets/row1.png" width="555" alt="1행: 모델 표시 이름, git 브랜치, 변경 줄수(+ 시안, − 핑크), 프로젝트 폴더">
 
-<img src="assets/row2.png" width="491" alt="2행: 컨텍스트 사용률 게이지 12칸, 가득 찰 때까지 남은 턴 예보, 세션 비용, 경과 시간">
+<img src="assets/row2.png" width="491" alt="2행: 컨텍스트 사용률 게이지 12칸, 가득 찰 때까지 남은 턴 추정, 세션 비용, 경과 시간">
 
-예보는 10턴이 넘으면 `10+턴`, 추정할 수 없으면 생략합니다. 비용을 모르면 비용 칸도 생략합니다.
+남은 턴은 10턴까지는 `~7턴`처럼 그대로, 그 위로는 10턴 단위로 내림해 `40+턴`처럼, 100턴 이상은 `100+턴`으로 표시하고, 추정할 수 없으면 생략합니다. 비용을 모르면 비용 칸도 생략합니다.
 
 <img src="assets/row3.png" width="760" alt="3행: 5시간 한도와 리셋까지 남은 시간, 7일 한도, Fable 주간 한도">
 
@@ -61,7 +61,7 @@ claude plugin install neon-bubble@dune-kit
 
 | 섹션 | 내용 |
 | --- | --- |
-| ✏️ 수정한 파일 | 이번 세션 Edit/Write/MultiEdit/NotebookEdit 대상(저장소 상대 경로)과 횟수, 최근 순 12개 |
+| ✏️ 수정한 파일 | 이번 세션 Edit/Write/MultiEdit/NotebookEdit 대상(저장소 상대 경로)과 횟수, 최근 순 12개. 경로는 링크라 Ctrl+클릭하면 파일이 열림(`editLinkScheme`) |
 | 🛠 도구 호출 | 시각·도구·요약(Bash 는 명령 앞 40자, 파일 도구는 파일명), 실패는 빨강, 최근 15개 |
 | 📈 사용량 추이 | 컨텍스트 %·5h % 스파크라인 `▁▂▃▄▅▆▇█`, 최근 30개 측정 |
 | 💾 메모리 변경 | 이번 세션에 바뀐 메모리 파일과 시각 |
@@ -124,7 +124,7 @@ Bash·PowerShell 명령을 줄바꿈 `;` `&&` `||` `|` `&` 로 나누고, 각 �
 - 턴 중 스피너 뒤에 ` · 🛠 3 · ⏱ 12s · 💎 $0.04…`(이번 턴 도구 호출 수, 경과, 턴 비용; 비용을 모르면 생략)를 붙입니다. 엔진 스피너는 그대로이며 1초마다 갱신, 턴이 끝나면 타이머를 멈춥니다.
 - 메인 대화 턴이 끝나면(중단 제외) 답 아래에 `✓ 12s · 도구 5 · 입력 12.3k · 출력 1.2k · 캐시 81%`. 입력 = input + cache_read + cache_creation, 캐시율 = cache_read / 입력.
 
-### 8. 컨텍스트 예보
+### 8. 컨텍스트 남은 턴
 메인 대화의 요청마다(`turn.step`) usage 로 컨텍스트 크기를 재고, 턴 끝 크기의 최근 5번 증가량 평균으로 "가득 찰 때까지 남은 턴"을 추정합니다. 띠 2행과 사이드 패널 사용량 추이에 표시합니다.
 
 ### 9. `/replay [N]` — 편집 리플레이
@@ -153,6 +153,7 @@ Bash·PowerShell 명령을 줄바꿈 `;` `&&` `||` `|` `&` 로 나누고, 각 �
 | `alertPercent` | number | `95` | 경고 알림 기준 |
 | `autoOpenPanel` | boolean | `true` | 세션 시작 시 사이드 패널 열기 요청 |
 | `neonToolRows` | boolean | `true` | 도구 호출 행 아이콘·색 |
+| `editLinkScheme` | string | `file` | 패널 "수정한 파일" 링크 방식. `file` 은 `file://`(터미널이 엶), `vscode`·`cursor` 등은 `<scheme>://file/…` 로 그 에디터 새 탭 |
 
 `/config` 메뉴에서 바꾸면 모듈이 새 값으로 다시 로드됩니다.
 
@@ -164,7 +165,7 @@ plugins/neon-bubble/
   hooks/hooks.json        # { "modules": ["./register.tsx"] }
   hooks/register.tsx      # 모든 훅·그리기·git 읽기·미리보기 수집($ 를 쓰는 코드는 이 파일에만)
   hooks/guard-rules.ts    # 명령 파싱·차단/묻기/경고 판정·사설 IP·주석 카운터(순수 함수)
-  hooks/format.ts         # 색·게이지·시간·띠 배치·알림·턴 요약·예보·diff·미리보기 문구(순수 함수)
+  hooks/format.ts         # 색·게이지·시간·띠 배치·알림·턴 요약·남은 턴·diff·미리보기 문구(순수 함수)
   hooks/flow.ts           # flow 단축 규칙과 분류 입력(순수 함수)
   hooks/route.ts          # 모델 분배 규칙(순수 함수)
   types/index.d.ts        # $.state 계약(PluginState['neon-bubble'])
@@ -195,7 +196,7 @@ claude plugin test plugins/neon-bubble
 - v0.1 에서 무조건 차단이던 강제 push·파괴적 명령은 v0.2 에서 묻기로 바뀌었고, `/guard-allow force-push|destructive` 는 더 이상 받지 않습니다.
 - 턴 요약 줄은 `turn.complete` 의 다른 `text` 로 답 아래에 그려집니다. 다른 플러그인이 같은 자리를 쓰면 위쪽 플러그인 것이 보입니다. 턴 비용은 턴 시작·진행 중 `$.session.usage()` 의 비용 차이라서 서브에이전트 비용도 포함됩니다.
 - 스피너의 도구 수는 이번 턴의 모든 도구 호출(서브에이전트 포함, 가드의 묻기 대화상자 제외)입니다.
-- 컨텍스트 예보는 메인 대화 요청 usage(input+cache+output)의 턴 끝 값만 쓰며, 자동 compact 임계값이 아니라 모델 창 크기 기준입니다. 두 턴 이상 증가가 쌓여야 표시됩니다.
+- 컨텍스트 남은 턴 추정은 메인 대화 요청 usage(input+cache+output)의 턴 끝 값만 쓰며, 자동 compact 임계값이 아니라 모델 창 크기 기준입니다. 두 턴 이상 증가가 쌓여야 표시됩니다.
 - `/replay N` 은 엄밀히 N 턴 전(편집이 없는 턴도 한 턴으로 셉니다)입니다. Edit 의 diff 는 `old_string`/`new_string` 기준이라 줄 번호가 실제 파일 위치와 다르고(1부터), Write 는 쓰기 전 파일을 읽어 비교합니다. NotebookEdit 은 새 셀 내용만 보여 줍니다.
 - 모델 분배: 에이전트 type 은 `$.agent.list()` 에 아직 없거나 이미 빠진 agentId 면 알 수 없어 바꾸지 않습니다. 모델 이름은 그대로 엔진에 넘기므로 세션에서 못 쓰는 모델이면 그 요청이 실패할 수 있습니다.
 - 네온 도구 행은 엔진 행을 감싸는 방식이라 행 앞에 아이콘 한 칸이 생깁니다. 펼쳐진 ToolGroup 은 각 ToolUse 행이 대신 꾸며집니다. 프롬프트 힌트 꼬리는 현재 터미널만 그립니다.
