@@ -14,6 +14,11 @@
       "name": "work-kit",
       "source": "./plugins/work-kit",
       "description": "/init 에 업무 하네스(PRD·Card·커밋·이슈·보고 규칙, 깃랩 템플릿, 프로젝트 메모리)를 합친다"
+    },
+    {
+      "name": "dev-kit",
+      "source": "./plugins/dev-kit",
+      "description": "주석·플랜 규칙 항상 적용 · 리뷰/TDD/Python·FastAPI·Postgres 에이전트와 스킬 · /mr-review · /codemap"
     }
   ]
 }

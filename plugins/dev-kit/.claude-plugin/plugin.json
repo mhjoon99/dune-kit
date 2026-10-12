@@ -1,0 +1,8 @@
+{
+  "name": "dev-kit",
+  "version": "0.1.0",
+  "description": "개발 하네스: 주석·플랜 규칙을 항상 적용하고 리뷰·TDD·Python/FastAPI/Postgres 에이전트와 스킬, /mr-review /codemap 을 준다",
+  "author": {
+    "name": "mhjoon99"
+  }
+}
