@@ -19,8 +19,12 @@ describe('지시문', () => {
     expect(text).not.toContain('C:\\kit')
   })
 
-  test('묶음 6개와 순서 ①~⑥ 이 모두 들어간다', async () => {
-    expect(BUNDLES.map(b => b.label)).toEqual(['업무 매뉴얼', 'Git·커밋·MR', '이슈', '보고', '저장소 정책', '작업 태도'])
+  test('고르는 묶음 4개·항상 까는 묶음 2개·순서 ①~⑥ 이 모두 들어간다', async () => {
+    expect(BUNDLES.filter(b => !b.always).map(b => b.label)).toEqual(['업무 매뉴얼', 'Git·커밋·MR', '이슈', '보고'])
+    expect(BUNDLES.filter(b => b.always).map(b => b.label)).toEqual(['저장소 정책', '작업 태도'])
+    expect(text).toContain('| 4. 보고 (`report`) |')
+    expect(text).toContain('| 항상. 저장소 정책 (`repo`) |')
+    expect(text).toContain('| 항상. 작업 태도 (`attitude`) |')
     for (const b of BUNDLES) expect(text).toContain(`(\`${b.key}\`)`)
     for (const step of ['① 묶음 선택', '② 프로젝트 기본', '③ 분석 방향', '④ 분석', '⑤ 채운 값 확인', '⑥ 생성']) expect(text).toContain(step)
   })

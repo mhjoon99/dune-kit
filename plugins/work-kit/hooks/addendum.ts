@@ -10,6 +10,8 @@ export type Bundle = {
   // core.md 안에서 이 묶음이 가진 절(<!-- work-kit:{key} --> 블록)
   coreSections: string
   extra?: string
+  // 묻지 않고 늘 까는 묶음. ① 의 선택지에 넣지 않는다
+  always?: true
 }
 
 export const BUNDLES: readonly Bundle[] = [
@@ -62,6 +64,7 @@ export const BUNDLES: readonly Bundle[] = [
     summary: 'docs/ 미추적, 추적 파일에 사내 정보 금지',
     files: [],
     coreSections: '§5',
+    always: true,
     extra: '`.gitignore` 에 `docs/*` 와 추적 예외 `!docs/{경로}` 줄을 더한다(이미 있으면 그대로).',
   },
   {
@@ -70,6 +73,7 @@ export const BUNDLES: readonly Bundle[] = [
     summary: '결정≠착수, 매뉴얼은 원문 그대로, 한국어·UTF-8, 메모리를 저장소 .claude/memory 에',
     files: [['rules/work-attitude.md', '.claude/rules/work-attitude.md']],
     coreSections: '',
+    always: true,
     extra:
       '`.claude/settings.local.json` 에 `"autoMemoryDirectory": "{{projectAbs}}/.claude/memory"` 를 **병합**한다' +
       '(다른 키는 건드리지 않는다. 절대경로만 허용되는 키라 local 설정에 둔다. 경로 구분자는 `/`). ' +
@@ -98,7 +102,7 @@ function bundleTable(root: string): string {
   const rows = BUNDLES.map((b, i) => {
     const files = b.files.map(([from, to]) => `\`${to}\` ← \`${root}/templates/${from}\``).join('<br>')
     const core = b.coreSections ? `core.md ${b.coreSections}` : '—'
-    return `| ${i + 1}. ${b.label} (\`${b.key}\`) | ${b.summary} | ${core} | ${files || '—'} | ${b.extra ?? ''} |`
+    return `| ${b.always ? '항상.' : `${i + 1}.`} ${b.label} (\`${b.key}\`) | ${b.summary} | ${core} | ${files || '—'} | ${b.extra ?? ''} |`
   })
   return [
     '| 묶음 | 무엇 | core.md 절 | 만들 파일 ← 템플릿 | 그 밖에 |',
@@ -133,14 +137,13 @@ export function buildAddendum(root: string): string {
 
 ## ① 묶음 선택
 
-AskUserQuestion **한 번**에 multiSelect 질문 두 개로 묻는다(선택지는 질문당 4개까지라 나눈다). 설명에 "보통은 전부 고른다" 를 넣는다.
-- 질문 A "문서·보고 묶음": 1 업무 매뉴얼 / 4 보고 / 3 이슈
-- 질문 B "규칙 묶음": 2 Git·커밋·MR / 5 저장소 정책 / 6 작업 태도
+AskUserQuestion **한 번**, multiSelect 질문 하나로 묻는다. 선택지는 1 업무 매뉴얼 / 2 Git·커밋·MR / 3 이슈 / 4 보고. 설명에 "보통은 전부 고른다" 를 넣는다.
+표에서 「항상.」 인 묶음(저장소 정책·작업 태도)은 **선택지에 넣지 않고 늘 깐다.** 그 파일·설정도 ⑤ 제안서에는 다른 것과 같이 적는다.
 
 ${bundleTable(r)}
 
-- **\`.claude/rules/core.md\`** 는 묶음이 하나라도 core 절을 가지면 만든다. 템플릿 \`${r}/templates/rules/core.md\` 의
-  \`<!-- work-kit:{key} -->\` … \`<!-- /work-kit:{key} -->\` 블록 중 **고른 묶음의 블록만 남기고** 나머지 블록은 통째로 지운다.
+- **\`.claude/rules/core.md\`** 는 늘 만든다(§5 가 항상 들어간다). 템플릿 \`${r}/templates/rules/core.md\` 의
+  \`<!-- work-kit:{key} -->\` … \`<!-- /work-kit:{key} -->\` 블록 중 **고른 묶음과 「항상.」 묶음의 블록만 남기고** 나머지 블록은 통째로 지운다.
   남긴 블록의 표시 주석은 지우지 않는다(다시 돌릴 때 비교 기준이다). 절 번호는 바꾸지 않는다.
 - \`docs-format.md\` 는 1 이 아니어도 3·4 를 고르면 함께 만든다.
 - 고르지 않은 묶음을 가리키는 문장·표 행(예: \`weekly-report.md\` 참조, \`/weekly-report\` 행)은 만든 파일에서 지운다. 끊긴 참조를 남기지 않는다.
@@ -169,7 +172,7 @@ ${placeholders}
 ## ⑤ 제안서에 넣을 것
 
 내장 제안서의 bullet 뒤에 work-kit 항목을 이어 적는다.
-- \`**[work-kit 묶음]** 1 업무 매뉴얼, 2 Git·커밋·MR …\` 한 줄
+- \`**[work-kit 묶음]** 1 업무 매뉴얼, 2 Git·커밋·MR … + 항상: 저장소 정책, 작업 태도\` 한 줄
 - 만들 파일마다 한 줄(\`**[rule]** .claude/rules/card.md — Card 형식\` 처럼)
 - 채운 자리표시값을 \`이름 = 값\` 으로 한 덩어리 — 사용자가 여기서 고친다
 - \`.claude/memory/\` 를 git 에서 뺄지(기본: \`.gitignore\` 에 더해 뺀다) 한 줄

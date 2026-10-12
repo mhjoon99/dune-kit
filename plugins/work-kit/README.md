@@ -33,7 +33,7 @@ CLAUDE_CODE_NEW_INIT=1 claude
 
 | 단계 | 하는 것 |
 |---|---|
-| ① 묶음 선택 | 6개 묶음 중 고른다(질문 두 개, 보통은 전부) |
+| ① 묶음 선택 | 4개 묶음 중 고른다(질문 하나, 보통은 전부). 저장소 정책·작업 태도는 묻지 않고 늘 깐다 |
 | ② 프로젝트 기본 | 이름·빈 프로젝트 여부·스택 |
 | ③ 분석 방향 | 내장 질문(CLAUDE.md 를 어떻게 할지 등). 빈 프로젝트면 건너뜀 |
 | ④ 분석 | 내장 서브에이전트 탐색 + 테스트·린트 명령, 브랜치, 추적 중인 docs 파일 |
@@ -51,8 +51,10 @@ work-kit 없이 내장 흐름만 쓰려면 `/init --plain`.
 | 2. Git·커밋·MR | `rules/gitlab-templates.md`, `.gitlab/merge_request_templates/Default.md`, `core.md` §3·§6 |
 | 3. 이슈 | `rules/issues.md` `detected-issues.md`, `.gitlab/issue_templates/Bug.md` `Incident.md`, `core.md` §4 |
 | 4. 보고 | `rules/weekly-report.md`, `core.md` §2 |
-| 5. 저장소 정책 | `core.md` §5, `.gitignore` 의 `docs/*` |
-| 6. 작업 태도 | `rules/work-attitude.md`, `.claude/settings.local.json` 의 `autoMemoryDirectory` → `.claude/memory/` |
+| 항상. 저장소 정책 | `core.md` §5, `.gitignore` 의 `docs/*` |
+| 항상. 작업 태도 | `rules/work-attitude.md`, `.claude/settings.local.json` 의 `autoMemoryDirectory` → `.claude/memory/` |
+
+1~4 는 `/init` 때마다 고르고, 「항상.」 두 묶음은 고르지 않아도 `/init` 을 돌리면 늘 들어갑니다.
 
 배치는 **혼합**입니다. 명령·훅은 플러그인에 있고, 규칙은 프로젝트 `.claude/rules/` 로 복사돼 프로젝트마다 고칠 수 있습니다. 템플릿은 `templates/` 에 있습니다.
 사내 도구 기본값은 docmost(문서)·Planka(카드)·GitLab(이슈·MR)·Jenkins(CI)이고 인터뷰에서 바꿀 수 있습니다.
