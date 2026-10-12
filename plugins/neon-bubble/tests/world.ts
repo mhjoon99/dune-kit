@@ -16,6 +16,9 @@ export type World = {
   usage?: { ctx?: number; startedAt?: number; cost?: number; limits?: { kind: string; percentUsed: number; resetsAt?: string }[] }
 }
 
+// Windows 에서는 엔진이 경로를 `C:\repo\x` 로 넘긴다 → 가짜 세계의 `/repo/x` 로 맞춘다
+const posix = (p: string) => p.replace(/^[A-Za-z]:/, '').replace(/\\/g, '/')
+
 const ok = (stdout = '', exitCode = 0) => ({ value: { exitCode, stdout, stderr: '', isStdoutTruncated: false, isStderrTruncated: false } })
 
 /** /repo 에 저장소가 있는 세계를 깔고, 띄운 토스트를 모아 돌려준다. */
@@ -43,17 +46,18 @@ export function installWorld(on: On, w: World = {}) {
     return { value: undefined }
   })
   on('fs.stat', ($, e) => {
-    if (e.path === '/repo/.git' || e.path === '/repo') return { value: { kind: 'dir' as const, size: 0, mtimeMs: 0, isLink: false } }
-    if (files[e.path] !== undefined) return { value: { kind: 'file' as const, size: 1, mtimeMs: 0, isLink: false } }
+    const path = posix(e.path)
+    if (path === '/repo/.git' || path === '/repo') return { value: { kind: 'dir' as const, size: 0, mtimeMs: 0, isLink: false } }
+    if (files[path] !== undefined) return { value: { kind: 'file' as const, size: 1, mtimeMs: 0, isLink: false } }
     return { deny: `ENOENT: ${e.path}` }
   })
-  on('fs.exists', ($, e) => ({ value: files[e.path] !== undefined || e.path === '/repo/.git' }))
-  on('fs.read', ($, e) => (files[e.path] !== undefined ? { value: files[e.path] as string } : { deny: `ENOENT: ${e.path}` }))
+  on('fs.exists', ($, e) => ({ value: files[posix(e.path)] !== undefined || posix(e.path) === '/repo/.git' }))
+  on('fs.read', ($, e) => (files[posix(e.path)] !== undefined ? { value: files[posix(e.path)] as string } : { deny: `ENOENT: ${e.path}` }))
   on('process.run', ($, e) => {
     const argv = e.argv.join(' ')
     if (argv.startsWith('git diff --shortstat')) return ok(w.shortstat ?? ' 2 files changed, 12 insertions(+), 3 deletions(-)\n')
     if (argv.startsWith('git ls-files --others')) return ok((w.untracked ?? []).join('\n'))
-    if (argv.startsWith('git ls-files --error-unmatch')) return ok('', (w.tracked ?? []).includes(e.argv.at(-1) ?? '') ? 0 : 1)
+    if (argv.startsWith('git ls-files --error-unmatch')) return ok('', (w.tracked ?? []).includes(posix(e.argv.at(-1) ?? '')) ? 0 : 1)
     if (argv.startsWith('git check-ignore')) return ok('', 1)
     if (argv === 'git status --short') return ok(w.status ?? '')
     if (argv === 'git stash list') return ok(w.stash ?? '')
